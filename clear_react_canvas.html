@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<p>Image to use:</p>
+
+<img id="scream" width="35" height="35"
+src="pic_the_scream.jpg" alt="The Scream">
+
+<p>Canvas:</p>
+
+<canvas id="myCanvas" width="240" height="297"
+style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+<script>
+const projectStamps = [];
+const canvas = document.getElementById("myCanvas");
+const ctx = canvas.getContext("2d");
+
+function validStampObj(stamp){
+    if (typeof(stamp.x) !== 'number' || typeof(stamp.y) !== 'number' || typeof(stamp.image_id) === 'undefined' || !document.getElementById(stamp.image_id)){
+      return false;
+    } else {
+      return true;
+    }
+}
+function addStamp(stamp){
+    if (!validStampObj(stamp)){
+      console.log("can not add stamp, invalid object");
+      return false;
+    }
+    
+     const image = document.getElementById(stamp.image_id);
+    stamp['w'] = image.getBoundingClientRect().width;
+    stamp['h'] = image.getBoundingClientRect().height;
+    
+    ctx.drawImage(image, stamp.x, stamp.y, stamp.w, stamp.h);
+    projectStamps.push(stamp);
+    return stamp;
+    
+}
+
+function clear(ctx, react){
+    if (!validStampObj(react)){
+      return false;
+    }
+    ctx.clearRect(react.x,react.y,react.w,react.h);
+    return true;
+}
+let id = 1;
+
+window.onload = function() {
+id+=1;
+addStamp({image_id: 'scream', x: 100, y: 100, id: id});
+clearStamp(addStamp({image_id: 'scream', x: 110, y: 100, id: id+1}));
+
+/*clear(ctx, addStamp({image_id: 'scream', x: 100, y: 100}))
+*/
+};
+
+function getNearetNumbers(x=[100,110], target=100, nearRange=0.4){
+const nearest = [];
+const indexAdded = [];
+for (let i=0; i<x.length; i++){
+    for (let r=nearRange; r<target; r++){
+        /*array performance*/
+        if (!indexAdded.includes(i)){
+           if (Math.abs((x[i] - target)) <= nearRange){
+               console.log("yes found one", x[i]);
+               nearest.push(x[i]);
+               indexAdded.push(i);
+           }
+        }
+    }
+}
+return {nearest: nearest, indexAdded: indexAdded}
+}
+
+function clearStamp(stampToClear){
+   /* all passed stamps oj have the needed proprties */
+   if (!validStampObj(stampToClear)){
+     console.log('can not clear stamp, invalid object')
+     return false;
+   }
+   
+   const shapesWillRemoved = [];
+   const shapesWillRemovedIndexes = [];
+   
+  const reactXs = [];
+  const reactYs = [];
+  const reactWs = [];
+  const reactHs = [];
+  
+  
+  projectStamps.forEach( (stamp)=>{
+     reactXs.push(stamp.x);
+     reactYs.push(stamp.y);
+     reactWs.push(stamp.w);
+     reactHs.push(stamp.h);
+  });
+  
+  /* use advanced function to get all reacts in the same place with the react we will remove */
+  
+  /* add all shapes touch removed target.x to removing and return list */
+  const shapesTouchCurrentX = getNearetNumbers(reactXs, stampToClear.x, stampToClear.w);
+    shapesTouchCurrentX.indexAdded.forEach( (TargetIndex)=>{
+    if (reactXs.length > TargetIndex && projectStamps.length > TargetIndex && !shapesWillRemovedIndexes.includes(TargetIndex)){
+    let objectToRemve = projectStamps[TargetIndex];
+          shapesWillRemoved.push(objectToRemve);
+      shapesWillRemovedIndexes.push(TargetIndex);
+    }
+  });
+  
+  const shapesTouchCurrentY = getNearetNumbers(reactYs, stampToClear.y, stampToClear.h);
+    shapesTouchCurrentY.indexAdded.forEach( (TargetIndex)=>{
+    if (reactXs.length > TargetIndex && projectStamps.length > TargetIndex && !shapesWillRemovedIndexes.includes(TargetIndex)){
+    let objectToRemve = projectStamps[TargetIndex];
+          shapesWillRemoved.push(objectToRemve);
+      shapesWillRemovedIndexes.push(TargetIndex);
+    }
+  });
+  
+  
+  
+  let backList = [];
+  shapesWillRemoved.forEach( (shape)=>{
+    if (stampToClear.id == shape.id){
+       clear(ctx, stampToClear);         
+    } else {
+       backList.push(stampToClear);
+       clear(ctx, shape);
+    }
+  });
+  
+  backList.forEach( (shape)=>{
+     addStamp(shape);
+  });
+
+  
+/*
+  
+  console.log(shapesTouchCurrentX);
+  shapesTouchCurrentX.indexAdded.forEach( (TargetIndex,i,arr)=>{
+    if (reactXs.length > TargetIndex && projectStamps.length > TargetIndex && !shapesWillRemovedIndexes.includes(TargetIndex)){
+      let objectToRemve = projectStamps[TargetIndex];
+      shapesWillRemoved.push(objectToRemve);
+      shapesWillRemovedIndexes.push(TargetIndex);
+    }
+        
+  });
+
+  const shapesTouchCurrentY = getNearetNumbers(reactYs, stampToClear.y, stampToClear.h);
+  shapesTouchCurrentY.indexAdded.forEach( (TargetIndex)=>{
+    if (reactXs.length > TargetIndex && projectStamps.length > TargetIndex && !shapesWillRemovedIndexes.includes(TargetIndex)){
+      
+      let objectToRemve = projectStamps[TargetIndex];
+      shapesWillRemoved.push(objectToRemve);
+      shapesWillRemovedIndexes.push(TargetIndex);
+    }
+  });
+  
+  let backList = [];
+  shapesWillRemoved.forEach( (shape)=>{
+    if (stampToClear.id == shape.id){
+       clear(stampToClear);         
+    } else {
+       backList.push(stampToClear);
+       clear(stampToClear);
+    }
+  });
+  
+  backList.forEach( (shape)=>{
+     addStamp(shape);
+  });
+*/  
+  
+  console.log("X", reactXs);
+  console.log("y", reactYs);
+  console.log("w", reactWs);
+  console.log("h", reactHs);
+  console.log("hi", shapesWillRemoved);
+
+}
+</script>
+
+</body>
+</html>
