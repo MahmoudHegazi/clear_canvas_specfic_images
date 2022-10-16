@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<p>Image to use:</p>
+
+<img id="scream" width="35" height="35"
+src="https://i.ibb.co/wYyc259/iconimage.png" alt="The Scream">
+
+<img id="project_image" width="450" height="300"
+src="https://i.ibb.co/sK5HtQy/bulding-image.png" style="position:absolute;left:-15455px;">
+
+
+
+<p>Canvas:</p>
+
+<button onclick="drawProject()">Redraw things</button>
+
+<canvas id="myCanvas" width="450" height="300"
+style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+<script>
+const projectStamps = [{image_id: 'scream', x: 100, y: 100, id: 1}, {image_id: 'scream', x: 100, y: 100, id: 2}, {image_id: 'scream', x: 50, y: 0, id: 3}, {image_id: 'scream', x: 150, y: 0, id: 4}];
+
+
+let currentShapes = [];
+const canvas = document.getElementById("myCanvas");
+const ctx = canvas.getContext("2d");
+
+function validStampObj(stamp){
+    if (typeof(stamp.x) !== 'number' || typeof(stamp.y) !== 'number' || typeof(stamp.image_id) === 'undefined' || !document.getElementById(stamp.image_id)){
+      return false;
+    } else {
+      return true;
+    }
+}
+
+
+function addStamp(stamp){
+    if (!validStampObj(stamp)){
+      console.log("can not add stamp, invalid object");
+      return false;
+    }
+    
+     const image = document.getElementById(stamp.image_id);
+    stamp['w'] = image.getBoundingClientRect().width;
+    stamp['h'] = image.getBoundingClientRect().height;
+    
+    ctx.drawImage(image, stamp.x, stamp.y, stamp.w, stamp.h);
+    currentShapes.push(stamp);
+    return stamp;
+    
+}
+
+let id = 1;
+
+window.onload = function() {
+
+drawProject();
+
+};
+
+
+function clearCanvas(){
+  currentShapes = [];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  return true;
+}
+
+const projectImage = document.getElementById("project_image");
+
+function drawProject(){
+  if (!projectImage){console.log('missing project image element');return false;} 
+  clearCanvas();
+  ctx.drawImage(projectImage,0,0);
+  projectStamps.forEach( (stamp)=>{
+    addStamp(stamp);
+  });
+  console.log(currentShapes);
+}
+
+function removeStamp(targetId){
+  let targetI = false;
+  for (let i=0; i<projectStamps.length; i++){
+    if (projectStamps[i].id == targetId){
+      targetI = i;
+      break;
+    }
+  }
+  if (targetI !== false){
+    /* remove the stamp from drawing stamps list and redraw the data */
+    projectStamps.splice(targetI,1);
+    drawProject();
+  }
+}
+removeStamp(3);
+
+</script>
+
+</body>
+</html>
